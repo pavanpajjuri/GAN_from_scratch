@@ -206,12 +206,6 @@ plt.show()
 
 ## Results
 
-Here’s the updated **Results** section of your `README.md` file, focusing on comparing the generated images at the end of 25 epochs with the original images from the CIFAR-10 dataset:
-
----
-
-## Results
-
 ### **Generated Images vs Original Images**
 
 After training the GAN for **25 epochs**, the generator produces images that somewhat resemble *(not greatly though)* the original CIFAR-10 dataset. Below is a comparison of the generated images and the original images:
