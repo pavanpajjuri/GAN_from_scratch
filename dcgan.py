@@ -24,14 +24,6 @@ transform = transforms.Compose([
                                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)) # (mean,std). changes values to [-1,1]. Stablizies Training
                                 ])
 
-dataset = dset.CIFAR10(root = "./data", download= True, transform=transform)
-# Using dataLoader to get the images of the training set batch by batch.
-# A higher num_workers (>1) enables faster data loading by using multiple CPU cores.
-
-dataloader = torch.utils.data.DataLoader(dataset = dataset, batch_size = 64, shuffle = True, num_workers=0, pin_memory = True)
-
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 # Defining the weights_init function that takes as input a neural network m and that will initialize all its weights.
@@ -72,9 +64,6 @@ class G(nn.Module): # We introduce a class to define the generator.
         return output # We return the output containing the generated images.
    
     
-# Creating the Generator
-netG = G().to(device) # We create the generator object.
-netG.apply(weights_init) # We initialize all the weights of its neural network.
 
 
 # Defining the Discriminator
@@ -102,63 +91,82 @@ class D(nn.Module): # We introduce the __init__() function that will define the 
     def forward(self, input):
         output = self.main(input)
         return output.view(-1)
+
+
+if __name__ == "__main__":
     
-# Creating the Discriminator'
-netD = D().to(device)
-netD.apply(weights_init)
+    dataset = dset.CIFAR10(root = "./data", download= True, transform=transform)
+    # Using dataLoader to get the images of the training set batch by batch.
+    # A higher num_workers (>1) enables faster data loading by using multiple CPU cores.
+
+    dataloader = torch.utils.data.DataLoader(dataset = dataset, batch_size = 64, shuffle = True, num_workers=0, pin_memory = True)
 
 
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Training the DC-GANs
-
-criterion = nn.BCELoss() # We create a Binary Cross Entropy criterion object that will measure the error between the prediction and the target.
-optimizerD = optim.Adam(netD.parameters(), lr = 0.0002, betas = (0.5, 0.999)) # We create the optimizer object of the discriminator.
-optimizerG = optim.Adam(netG.parameters(), lr = 0.0002, betas = (0.5, 0.999)) # We create the optimizer object of the Generator.
-
-
-epochs = 1
-for epoch in range(epochs):
-    for i, data in enumerate(dataloader, 0): # iterte over the images of the dataset
     
-        # 1st Step : Updating the weights of the Discriminator and Generator
-        netD.zero_grad() # Important : We initialize to 0 the gradients of the discriminator with respect to the weights.
+    
+    # Creating the Generator
+    netG = G().to(device) # We create the generator object.
+    netG.apply(weights_init) # We initialize all the weights of its neural network.
+    
+    
+    # Creating the Discriminator'
+    netD = D().to(device)
+    netD.apply(weights_init)
+    
+    
+    
+    # Training the DC-GANs
+    
+    criterion = nn.BCELoss() # We create a Binary Cross Entropy criterion object that will measure the error between the prediction and the target.
+    optimizerD = optim.Adam(netD.parameters(), lr = 0.0002, betas = (0.5, 0.999)) # We create the optimizer object of the discriminator.
+    optimizerG = optim.Adam(netG.parameters(), lr = 0.0002, betas = (0.5, 0.999)) # We create the optimizer object of the Generator.
+    
+    
+    epochs = 1
+    for epoch in range(epochs):
+        for i, data in enumerate(dataloader, 0): # iterte over the images of the dataset
         
-        
-        # Train the Discriminator with some real images of the dataset
-        real, _ = data # We get a real image of the dataset which will be used to train the discriminator.
-        real = real.to(device)
-        target = torch.ones(real.size()[0], device = device)  # We get the target.
-        output = netD(real) # We forward propagate this real image into the neural network of the discriminator to get the prediction (a value between 0 and 1).
-        errD_real = criterion(output, target) # We compute the loss between the predictions (output) and the target (equal to 1).
-         
-        # Train the Discriminator with some fake images 
-        noise = torch.randn(real.size()[0], 100, 1, 1, device = device) # We make a random input vector (noise - normal distributed) [called latent vector] of the generator.
-        target = torch.zeros(real.size()[0], device = device) 
-        fake = netG(noise) # We forward propagate this random input vector into the neural network of the generator to get some fake generated images.
-        output = netD(fake.detach()) # We forward propagate the fake generated images into the neural network of the discriminator to get the prediction (a value between 0 and 1).
-        errD_fake = criterion(output, target) # We compute the loss between the prediction (output) and the target (equal to 0).
-        
-        # Backpropagating the total error
-        errD = errD_real + errD_fake
-        errD.backward() # We backpropagate the loss error by computing the gradients of the total error with respect to the weights of the discriminator.
-        optimizerD.step() # We apply the optimizer to update the weights according to how much they are responsible for the loss error of the discriminator.
-        
-        
-        # 2nd Step: Updating the weights of the neural network of the generator
-        netG.zero_grad()  # Important : We initialize to 0 the gradients of the generator with respect to the weights.
-        
-        output = netD(fake) # We forward propagate the fake generated images into the neural network of the discriminator to get the prediction (a value between 0 and 1).
-        target = torch.ones(real.size()[0], device = device)
-        errG = criterion(output, target) # We compute the loss between the prediction (output between 0 and 1) and the target (equal to 1).
-        errG.backward() # We backpropagate the loss error by computing the gradients of the total error with respect to the weights of the generator.
-        optimizerG.step() # We apply the optimizer to update the weights according to how much they are responsible for the loss error of the generator.
-        
-        # 3rd Step: Printing the losses and saving the real images and the generated images of the minibatch every 100 steps
-        print('[%d/%d][%d/%d] Loss_D: %.4f Loss_G: %.4f' % (epoch, epochs, i, len(dataloader), errD.item(), errG.item()))  # We print the losses of the discriminator (Loss_D) and the generator (Loss_G).
-        if i % 100 == 0:  # Every 100 steps:
-            vutils.save_image(real.cpu(), '%s/real_samples.png' % "./results", normalize=True)  # We save the real images of the minibatch.
-            fake = netG(noise)  # We get our fake generated images.
-            vutils.save_image(fake.detach().cpu(), '%s/fake_samples_epoch_%03d.png' % ("./results", epoch), normalize=True)  # We also save the fake generated images of the minibatch.
+            # 1st Step : Updating the weights of the Discriminator and Generator
+            netD.zero_grad() # Important : We initialize to 0 the gradients of the discriminator with respect to the weights.
+            
+            
+            # Train the Discriminator with some real images of the dataset
+            real, _ = data # We get a real image of the dataset which will be used to train the discriminator.
+            real = real.to(device)
+            target = torch.ones(real.size()[0], device = device)  # We get the target.
+            output = netD(real) # We forward propagate this real image into the neural network of the discriminator to get the prediction (a value between 0 and 1).
+            errD_real = criterion(output, target) # We compute the loss between the predictions (output) and the target (equal to 1).
+             
+            # Train the Discriminator with some fake images 
+            noise = torch.randn(real.size()[0], 100, 1, 1, device = device) # We make a random input vector (noise - normal distributed) [called latent vector] of the generator.
+            target = torch.zeros(real.size()[0], device = device) 
+            fake = netG(noise) # We forward propagate this random input vector into the neural network of the generator to get some fake generated images.
+            output = netD(fake.detach()) # We forward propagate the fake generated images into the neural network of the discriminator to get the prediction (a value between 0 and 1).
+            errD_fake = criterion(output, target) # We compute the loss between the prediction (output) and the target (equal to 0).
+            
+            # Backpropagating the total error
+            errD = errD_real + errD_fake
+            errD.backward() # We backpropagate the loss error by computing the gradients of the total error with respect to the weights of the discriminator.
+            optimizerD.step() # We apply the optimizer to update the weights according to how much they are responsible for the loss error of the discriminator.
+            
+            
+            # 2nd Step: Updating the weights of the neural network of the generator
+            netG.zero_grad()  # Important : We initialize to 0 the gradients of the generator with respect to the weights.
+            
+            output = netD(fake) # We forward propagate the fake generated images into the neural network of the discriminator to get the prediction (a value between 0 and 1).
+            target = torch.ones(real.size()[0], device = device)
+            errG = criterion(output, target) # We compute the loss between the prediction (output between 0 and 1) and the target (equal to 1).
+            errG.backward() # We backpropagate the loss error by computing the gradients of the total error with respect to the weights of the generator.
+            optimizerG.step() # We apply the optimizer to update the weights according to how much they are responsible for the loss error of the generator.
+            
+            # 3rd Step: Printing the losses and saving the real images and the generated images of the minibatch every 100 steps
+            print('[%d/%d][%d/%d] Loss_D: %.4f Loss_G: %.4f' % (epoch, epochs, i, len(dataloader), errD.item(), errG.item()))  # We print the losses of the discriminator (Loss_D) and the generator (Loss_G).
+            if i % 100 == 0:  # Every 100 steps:
+                vutils.save_image(real.cpu(), '%s/real_samples.png' % "./results", normalize=True)  # We save the real images of the minibatch.
+                fake = netG(noise)  # We get our fake generated images.
+                vutils.save_image(fake.detach().cpu(), '%s/fake_samples_epoch_%03d.png' % ("./results", epoch), normalize=True)  # We also save the fake generated images of the minibatch.
 
 
 
