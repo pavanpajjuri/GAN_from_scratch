@@ -1,1 +1,3 @@
-GAN Implemntation from Scratch
+**GAN Implemntation from Scratch**
+
+Generative Adverserial Networks (GANs)
