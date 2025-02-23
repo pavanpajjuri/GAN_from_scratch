@@ -206,10 +206,58 @@ plt.show()
 
 ## Results
 
-- The trained generator can produce realistic images from random noise.
-- Generated images are saved in the `results/` directory during training.
-- A single generated image is displayed during evaluation.
+Here’s the updated **Results** section of your `README.md` file, focusing on comparing the generated images at the end of 25 epochs with the original images from the CIFAR-10 dataset:
 
+---
+
+## Results
+
+### **Generated Images vs Original Images**
+
+After training the GAN for **25 epochs**, the generator produces images that somewhat resemble *(not greatly though)* the original CIFAR-10 dataset. Below is a comparison of the generated images and the original images:
+
+#### **Original Images**
+The original images from the CIFAR-10 dataset are real-world photographs of objects, animals, and vehicles. These images are used to train the discriminator at the 25th epoch.
+
+![Original Images](./results/real_samples.png)
+
+#### **Generated Images**
+The generated images are produced by the generator after 25 epochs of training. These images are created from random noise and aim to mimic the distribution of the original dataset.
+
+![Generated Images](./results/fake_samples_epoch_025.png)
+
+#### **Comparison**
+- **Quality**: The generated images show recognizable patterns and structures, such as shapes and colors, but they are not as sharp or detailed as the original images.
+- **Diversity**: The generator produces a variety of images, but some mode collapse is observed, where similar-looking images are generated repeatedly.
+- **Progress**: Over the course of training, the quality of generated images improves significantly. Early epochs produce noisy and unrecognizable images, while later epochs produce more coherent and realistic images.
+
+---
+
+### **Visualization of Training Progress**
+
+To visualize the progress of the generator during training, here are some generated images at different epochs:
+
+| Epoch 1 | Epoch 5 | Epoch 10 | Epoch 15 | Epoch 20 | Epoch 25 |
+|---------|---------|----------|----------|----------|----------|
+| ![Epoch 1](./results/fake_samples_epoch_000.png) | ![Epoch 5](./results/fake_samples_epoch_004.png) | ![Epoch 10](./results/fake_samples_epoch_009.png) | ![Epoch 15](./results/fake_samples_epoch_014.png) | ![Epoch 20](./results/fake_samples_epoch_019.png) | ![Epoch 25](./results/fake_samples_epoch_024.png) |
+
+---
+
+### **Key Takeaways**
+- The generator improves significantly over the course of training, producing more realistic and diverse images.
+- The generated images at the end of 25 epochs show a strong resemblance to the original CIFAR-10 dataset, although they are not as sharp or detailed.
+- The training process demonstrates the power of GANs to learn complex data distributions and generate synthetic data.
+
+---
+
+### **How to Reproduce the Results**
+1. Train the GAN for 25 epochs using the `dcgan.py` script.
+2. Save the generated images at the end of each epoch in the `results/` directory.
+3. Use the `eval.py` script to load the trained generator and generate images for comparison.
+
+---
+
+This section highlights the progress of the generator and compares the final generated images with the original dataset. You can include the actual images in your `results/` directory and reference them in the `README.md` file. Let me know if you need further assistance!
 ---
 
 ## Limitations
