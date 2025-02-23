@@ -224,7 +224,7 @@ The original images from the CIFAR-10 dataset are real-world photographs of obje
 #### **Generated Images**
 The generated images are produced by the generator after 25 epochs of training. These images are created from random noise and aim to mimic the distribution of the original dataset.
 
-![Generated Images](./results/fake_samples_epoch_025.png)
+![Generated Images](./results/fake_samples_epoch_024.png)
 
 #### **Comparison**
 - **Quality**: The generated images show recognizable patterns and structures, such as shapes and colors, but they are not as sharp or detailed as the original images.
@@ -255,9 +255,6 @@ To visualize the progress of the generator during training, here are some genera
 2. Save the generated images at the end of each epoch in the `results/` directory.
 3. Use the `eval.py` script to load the trained generator and generate images for comparison.
 
----
-
-This section highlights the progress of the generator and compares the final generated images with the original dataset. You can include the actual images in your `results/` directory and reference them in the `README.md` file. Let me know if you need further assistance!
 ---
 
 ## Limitations
